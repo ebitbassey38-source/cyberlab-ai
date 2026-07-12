@@ -1,0 +1,6 @@
+.env
+node_modules/
+clean_token.txt
+login_response.json
+testfile.txt
+uploads/
