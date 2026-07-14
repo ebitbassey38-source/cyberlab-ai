@@ -41,6 +41,7 @@ const teamExerciseRoutes = require("./routes/teamExercises");
 const penTestRoutes = require("./routes/penTests");
 const agentRoutes = require("./routes/agent");
 const organizationRoutes = require("./routes/organizationRoutes");
+const organizationMemberRoutes = require("./routes/organizationMemberRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const securityScanRoutes = require("./routes/securityScanRoutes");
 const findingRoutes = require("./routes/findings");
@@ -70,6 +71,10 @@ app.use("/team-exercises", teamExerciseRoutes);
 app.use("/pentests", penTestRoutes);
 app.use("/agent", agentRoutes);
 app.use("/organizations", organizationRoutes);
+app.use(
+  "/organizations/:organizationId/members",
+  organizationMemberRoutes
+);
 app.use("/projects", projectRoutes);
 app.use("/security-scans", securityScanRoutes);
 app.use("/findings", findingRoutes);
