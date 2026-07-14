@@ -2,6 +2,7 @@ const OrganizationMember = require("../models/OrganizationMember");
 const Organization = require("../models/Organization");
 const User = require("../models/User");
 const sendResponse = require("../utils/response");
+const logAudit = require("../utils/auditLogger");
 
 // Helper: check if current user is owner or admin of this organization
 const requireOwnerOrAdmin = async (organizationId, userId) => {
@@ -52,7 +53,13 @@ const inviteMember = async (req, res, next) => {
       role: role || "security-analyst",
       status: "active",
     });
-
+await logAudit({
+  user: req.user.id,
+  action: "MEMBER_INVITED",
+  resource: "OrganizationMember",
+  resourceId: newMember._id,
+  details: `Invited ${email} as ${newMember.role}`,
+});
     sendResponse(res, 201, true, "Member added successfully", newMember);
   } catch (error) {
     next(error);
@@ -117,7 +124,13 @@ const updateMemberRole = async (req, res, next) => {
 
     targetMember.role = role;
     await targetMember.save();
-
+await logAudit({
+  user: req.user.id,
+  action: "MEMBER_ROLE_UPDATED",
+  resource: "OrganizationMember",
+  resourceId: targetMember._id,
+  details: `Changed member role to ${role}`,
+});
     sendResponse(res, 200, true, "Member role updated successfully", targetMember);
   } catch (error) {
     next(error);
@@ -149,6 +162,13 @@ const removeMember = async (req, res, next) => {
 
     await OrganizationMember.deleteOne({ _id: memberId });
 
+await logAudit({
+  user: req.user.id,
+  action: "MEMBER_REMOVED",
+  resource: "OrganizationMember",
+  resourceId: targetMember._id,
+  details: `Removed member from organization`,
+});
     sendResponse(res, 200, true, "Member removed successfully");
   } catch (error) {
     next(error);
