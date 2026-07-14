@@ -9,6 +9,8 @@ const {
 
 const { protect, authorize } = require("../middleware/auth");
 
+const memberRoutes = require("./organizationMemberRoutes");
+
 router.post(
   "/",
   protect,
@@ -27,5 +29,7 @@ router.get(
   protect,
   getOrganizationById
 );
+
+router.use("/:organizationId/members", memberRoutes);
 
 module.exports = router;
