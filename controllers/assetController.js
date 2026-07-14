@@ -1,14 +1,28 @@
 const Asset = require("../models/Asset");
+const sendResponse = require("../utils/response");
 
-const createAsset = async (req, res) => {
+const createAsset = async (req, res, next) => {
   try {
-    const { name, type, ipAddress, description, status } = req.body;
+    const {
+      project,
+      name,
+      type,
+      ipAddress,
+      description,
+      status,
+    } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ message: "Asset name is required" });
+    if (!project || !name) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "Project and asset name are required"
+      );
     }
 
     const asset = await Asset.create({
+      project,
       name,
       type,
       ipAddress,
@@ -17,27 +31,41 @@ const createAsset = async (req, res) => {
       owner: req.user.id,
     });
 
-    res.status(201).json({
-      message: "Asset created successfully",
-      asset,
-    });
+    sendResponse(
+      res,
+      201,
+      true,
+      "Asset created successfully",
+      asset
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-const getAssets = async (req, res) => {
+
+const getAssets = async (req, res, next) => {
   try {
-    const assets = await Asset.find({ owner: req.user.id });
-
-    res.status(200).json({
-      message: "Assets fetched successfully",
-      count: assets.length,
-      assets,
+    const assets = await Asset.find({
+      owner: req.user.id,
     });
+
+    sendResponse(
+      res,
+      200,
+      true,
+      "Assets fetched successfully",
+      assets
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-module.exports = { createAsset, getAssets };
+
+module.exports = {
+  createAsset,
+  getAssets,
+};

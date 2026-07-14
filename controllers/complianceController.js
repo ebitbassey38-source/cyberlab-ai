@@ -2,20 +2,20 @@ const Compliance = require("../models/Compliance");
 
 const createCompliance = async (req, res) => {
   try {
-    const { framework, requirement, status, notes, relatedAsset } = req.body;
-
+    const { project, framework, requirement, status, notes, relatedAsset } = req.body;
     if (!framework || !requirement) {
       return res.status(400).json({ message: "Framework and requirement are required" });
     }
 
     const compliance = await Compliance.create({
-      framework,
-      requirement,
-      status,
-      notes,
-      relatedAsset,
-      trackedBy: req.user.id,
-    });
+  project,
+  framework,
+  requirement,
+  status,
+  notes,
+  relatedAsset,
+  trackedBy: req.user.id,
+});
 
     res.status(201).json({
       message: "Compliance record created successfully",

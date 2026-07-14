@@ -1,47 +1,79 @@
-const RiskAssessment = require("../models/RiskAssessment");
+const Risk = require("../models/Risk");
+const sendResponse = require("../utils/response");
 
-const createRisk = async (req, res) => {
+const createRisk = async (req, res, next) => {
   try {
-    const { title, description, likelihood, impact, riskLevel, mitigationPlan, relatedAsset } = req.body;
-
-    if (!title || !likelihood || !impact || !riskLevel) {
-      return res.status(400).json({ message: "Title, likelihood, impact, and risk level are required" });
-    }
-
-    const risk = await RiskAssessment.create({
+    const {
+      project,
+      vulnerability,
       title,
       description,
       likelihood,
       impact,
-      riskLevel,
+      overallRisk,
       mitigationPlan,
-      relatedAsset,
-      assessedBy: req.user.id,
+      status,
+    } = req.body;
+
+    if (!project || !title || !likelihood || !impact) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "Project, title, likelihood, and impact are required"
+      );
+    }
+
+    const risk = await Risk.create({
+      project,
+      vulnerability,
+      title,
+      description,
+      likelihood,
+      impact,
+      overallRisk,
+      mitigationPlan,
+      status,
+      owner: req.user.id,
     });
 
-    res.status(201).json({
-      message: "Risk assessment created successfully",
-      risk,
-    });
+    sendResponse(
+      res,
+      201,
+      true,
+      "Risk created successfully",
+      risk
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-const getRisks = async (req, res) => {
+
+const getRisks = async (req, res, next) => {
   try {
-    const risks = await RiskAssessment.find({ assessedBy: req.user.id })
-      .populate("relatedAsset", "name type")
-      .sort({ createdAt: -1 });
+    const risks = await Risk.find({
+      owner: req.user.id,
+    })
+      .populate("project", "name")
+      .populate("vulnerability", "title severity");
 
-    res.status(200).json({
-      message: "Risk assessments fetched successfully",
-      count: risks.length,
-      risks,
-    });
+    sendResponse(
+      res,
+      200,
+      true,
+      "Risks fetched successfully",
+      risks
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-module.exports = { createRisk, getRisks };
+
+module.exports = {
+  createRisk,
+  getRisks,
+};

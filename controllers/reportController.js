@@ -1,45 +1,77 @@
 const Report = require("../models/Report");
+const sendResponse = require("../utils/response");
 
-const createReport = async (req, res) => {
+const createReport = async (req, res, next) => {
   try {
-    const { title, summary, relatedAssets, relatedVulnerabilities } = req.body;
+    const {
+      project,
+      title,
+      executiveSummary,
+      technicalSummary,
+      assessments,
+      findings,
+      overallRisk,
+    } = req.body;
 
-    if (!title) {
-      return res.status(400).json({ message: "Report title is required" });
+    if (!project || !title) {
+      return sendResponse(
+        res,
+        400,
+        false,
+        "Project and report title are required"
+      );
     }
 
     const report = await Report.create({
+      project,
       title,
-      summary,
-      relatedAssets,
-      relatedVulnerabilities,
+      executiveSummary,
+      technicalSummary,
+      assessments,
+      findings,
+      overallRisk,
       createdBy: req.user.id,
     });
 
-    res.status(201).json({
-      message: "Report created successfully",
-      report,
-    });
+    sendResponse(
+      res,
+      201,
+      true,
+      "Report created successfully",
+      report
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-const getReports = async (req, res) => {
+
+const getReports = async (req, res, next) => {
   try {
-    const reports = await Report.find({ createdBy: req.user.id })
-      .populate("relatedAssets", "name type")
-      .populate("relatedVulnerabilities", "title severity")
+    const reports = await Report.find({
+      createdBy: req.user.id,
+    })
+      .populate("project", "name")
+      .populate("assessments")
+      .populate("findings")
       .sort({ createdAt: -1 });
 
-    res.status(200).json({
-      message: "Reports fetched successfully",
-      count: reports.length,
-      reports,
-    });
+    sendResponse(
+      res,
+      200,
+      true,
+      "Reports fetched successfully",
+      reports
+    );
+
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    next(error);
   }
 };
 
-module.exports = { createReport, getReports };
+
+module.exports = {
+  createReport,
+  getReports,
+};
