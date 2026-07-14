@@ -6,3 +6,5 @@ testfile.txt
 uploads/
 clean_token_b.txt
 login_response_b.json
+login_outsider.json
+clean_token_outsider.txt
